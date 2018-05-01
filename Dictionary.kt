@@ -1,46 +1,68 @@
-import java.util.*
-
 class Dictionary {
 
-
-
-    var kvm = hashMapOf<String,String>() // Key for Value Map
-    var vkm = hashMapOf<String,String>() // Value for Key Map
-    var spm = hashMapOf<String,IntArray>() // Something for Prefix Map
+    private var kvm = hashMapOf<String,String>() // Key for Value Map
+    private var vkm = hashMapOf<String,String>() // Value for Key Map
+    private var bad_val = 0
 
     fun add(key: String, value: String): Boolean {
         if (kvm[key] != null)
             return false
         kvm.put(key,value)
         vkm.put(value,key)
-        spm.put(key,make_pref(key))
-        spm.put(value,make_pref(value))
-
         return true
     }
 
-    fun del_key(key: String): Boolean {
+    fun del_key(key: String): String {
         val value = kvm[key]
         if (value == null)
-            return false
+            return "The removal can't be done\n"
         kvm.remove(key)
         vkm.remove(value)
-        spm.remove(key)
-        // can't remove value from SKM, because it might be used in other pairs
+        bad_val++
 
-        return true
+        return "The removal was successful\n"
     }
 
-    fun del_val(value: String): Boolean {
+    fun del_val(value: String): String {
         val key = vkm[value]
         if (key == null)
-            return false
+            return "The removal can't be done\n"
         vkm.remove(value)
         kvm.remove(key)
-        spm.remove(key)
-        // can't remove value from SKM, because it might be used in other pairs
+        bad_val++
 
-        return true
+        return "The removal was successful\n"
+    }
+
+    fun find_by_key(key_frag: String): MutableList<Pair<String,String>> {
+        var good = mutableListOf<Pair<String,String>>()
+        for (key in kvm.keys) {
+            if (KMP(key,key_frag)) {
+                good.add(Pair(key,kvm[key]!!))
+            }
+        }
+        return good
+    }
+
+    fun find_by_value(val_frag: String): MutableList<Pair<String,String>> {
+        var good = mutableListOf<Pair<String,String>>()
+        for (value in vkm.keys) {
+            if (KMP(value,val_frag)) {
+                good.add(Pair(vkm[value]!!,value))
+            }
+        }
+        return good
+    }
+
+    fun find_by_vk(key_frag: String, val_frag: String): MutableList<Pair<String,String>> {
+        var good = mutableListOf<Pair<String,String>>()
+        for (key in kvm.keys) {
+            if (KMP(key,key_frag)) {
+                if (KMP(kvm[key]!!,val_frag))
+                    good.add(Pair(key,kvm[key]!!))
+            }
+        }
+        return good
     }
 
     private fun make_pref(value: String): IntArray {
@@ -57,5 +79,22 @@ class Dictionary {
             ind++
         }
         return pref
+    }
+
+    private fun KMP(fnd: String, str: String): Boolean {
+        var pref = make_pref(str)
+        var k = 0
+        var i = 0
+
+        while (i < fnd.length) {
+            while (k > 0 && str[k] != fnd[i])
+                k = pref[k-1]
+            if (str[k] == fnd[i])
+                k++
+            if (k == str.length)
+                return true
+            i++
+        }
+        return false
     }
 }
