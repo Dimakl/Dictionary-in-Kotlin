@@ -1,3 +1,5 @@
+// Knuth Morris Pratt algoritm was used for search. You can type "help" for help and list of commands.
+
 class Dictionary {
 
     private var kvm = hashMapOf<String,String>() // Key for Value Map
